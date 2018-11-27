@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*Program Synthesis using Interactive State Diagrams v0.0.1
 Made by TSUI, Yiu Ming and LEUNG, Chun Kit
 for the Final Year Project
@@ -33,8 +32,6 @@ for the requirement of BEng Information Engineering, CUHK*/
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
 */
-=======
->>>>>>> YY
 
 function Link(a, b) {
   this.nodeA = a;
@@ -382,153 +379,8 @@ TemporaryLink.prototype.draw = function(c) {
   drawArrow(c, this.to.x, this.to.y, Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x));
 };
 
-<<<<<<< HEAD
-// draw using this instead of a canvas and call toLaTeX() afterward
-function ExportAsLaTeX() {
-  this._points = [];
-  this._texData = '';
-  this._scale = 0.1; // to convert pixels to document space (TikZ breaks if the numbers get too big, above 500?)
-
-  this.toLaTeX = function() {
-    return '\\documentclass[12pt]{article}\n' +
-      '\\usepackage{tikz}\n' +
-      '\n' +
-      '\\begin{document}\n' +
-      '\n' +
-      '\\begin{center}\n' +
-      '\\begin{tikzpicture}[scale=0.2]\n' +
-      '\\tikzstyle{every node}+=[inner sep=0pt]\n' +
-      this._texData +
-      '\\end{tikzpicture}\n' +
-      '\\end{center}\n' +
-      '\n' +
-      '\\end{document}\n';
-  };
-
-  this.beginPath = function() {
-    this._points = [];
-  };
-  this.arc = function(x, y, radius, startAngle, endAngle, isReversed) {
-    x *= this._scale;
-    y *= this._scale;
-    radius *= this._scale;
-    if (endAngle - startAngle == Math.PI * 2) {
-      this._texData += '\\draw [' + this.strokeStyle + '] (' + fixed(x, 3) + ',' + fixed(-y, 3) + ') circle (' + fixed(radius, 3) + ');\n';
-    } else {
-      if (isReversed) {
-        var temp = startAngle;
-        startAngle = endAngle;
-        endAngle = temp;
-      }
-      if (endAngle < startAngle) {
-        endAngle += Math.PI * 2;
-      }
-      // TikZ needs the angles to be in between -2pi and 2pi or it breaks
-      if (Math.min(startAngle, endAngle) < -2 * Math.PI) {
-        startAngle += 2 * Math.PI;
-        endAngle += 2 * Math.PI;
-      } else if (Math.max(startAngle, endAngle) > 2 * Math.PI) {
-        startAngle -= 2 * Math.PI;
-        endAngle -= 2 * Math.PI;
-      }
-      startAngle = -startAngle;
-      endAngle = -endAngle;
-      this._texData += '\\draw [' + this.strokeStyle + '] (' + fixed(x + radius * Math.cos(startAngle), 3) + ',' + fixed(-y + radius * Math.sin(startAngle), 3) + ') arc (' + fixed(startAngle * 180 / Math.PI, 5) + ':' + fixed(endAngle * 180 / Math.PI, 5) + ':' + fixed(radius, 3) + ');\n';
-    }
-  };
-  this.moveTo = this.lineTo = function(x, y) {
-    x *= this._scale;
-    y *= this._scale;
-    this._points.push({
-      'x': x,
-      'y': y
-    });
-  };
-  this.stroke = function() {
-    if (this._points.length == 0) return;
-    this._texData += '\\draw [' + this.strokeStyle + ']';
-    for (var i = 0; i < this._points.length; i++) {
-      var p = this._points[i];
-      this._texData += (i > 0 ? ' --' : '') + ' (' + fixed(p.x, 2) + ',' + fixed(-p.y, 2) + ')';
-    }
-    this._texData += ';\n';
-  };
-  this.fill = function() {
-    if (this._points.length == 0) return;
-    this._texData += '\\fill [' + this.strokeStyle + ']';
-    for (var i = 0; i < this._points.length; i++) {
-      var p = this._points[i];
-      this._texData += (i > 0 ? ' --' : '') + ' (' + fixed(p.x, 2) + ',' + fixed(-p.y, 2) + ')';
-    }
-    this._texData += ';\n';
-  };
-  this.measureText = function(text) {
-    var c = canvas.getContext('2d');
-    c.font = '20px "Times New Romain", serif';
-    return c.measureText(text);
-  };
-  this.advancedFillText = function(text, originalText, x, y, angleOrNull) {
-    if (text.replace(' ', '').length > 0) {
-      var nodeParams = '';
-      // x and y start off as the center of the text, but will be moved to one side of the box when angleOrNull != null
-      if (angleOrNull != null) {
-        var width = this.measureText(text).width;
-        var dx = Math.cos(angleOrNull);
-        var dy = Math.sin(angleOrNull);
-        if (Math.abs(dx) > Math.abs(dy)) {
-          if (dx > 0) nodeParams = '[right] ', x -= width / 2;
-          else nodeParams = '[left] ', x += width / 2;
-        } else {
-          if (dy > 0) nodeParams = '[below] ', y -= 10;
-          else nodeParams = '[above] ', y += 10;
-        }
-      }
-      x *= this._scale;
-      y *= this._scale;
-      this._texData += '\\draw (' + fixed(x, 2) + ',' + fixed(-y, 2) + ') node ' + nodeParams + '{$' + originalText.replace(/ /g, '\\mbox{ }') + '$};\n';
-    }
-  };
-
-  this.translate = this.save = this.restore = this.clearRect = function() {};
-}
-
-
 var greekLetterNames = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega'];
 
-function convertLatexShortcuts(text) {
-  // html greek characters
-  for (var i = 0; i < greekLetterNames.length; i++) {
-    var name = greekLetterNames[i];
-    text = text.replace(new RegExp('\\\\' + name, 'g'), String.fromCharCode(913 + i + (i > 16)));
-    text = text.replace(new RegExp('\\\\' + name.toLowerCase(), 'g'), String.fromCharCode(945 + i + (i > 16)));
-  }
-
-  // subscripts
-  for (var i = 0; i < 10; i++) {
-    text = text.replace(new RegExp('_' + i, 'g'), String.fromCharCode(8320 + i));
-  }
-
-  return text;
-}
-
-function textToXML(text) {
-  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  var result = '';
-  for (var i = 0; i < text.length; i++) {
-    var c = text.charCodeAt(i);
-    if (c >= 0x20 && c <= 0x7E) {
-      result += text[i];
-    } else {
-      result += '&#' + c + ';';
-    }
-  }
-  return result;
-}
-
-=======
-var greekLetterNames = [ 'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega' ];
-
->>>>>>> YY
 function drawArrow(c, x, y, angle) {
   var dx = Math.cos(angle);
   var dy = Math.sin(angle);
@@ -544,8 +396,7 @@ function canvasHasFocus() {
 }
 
 function drawText(c, originalText, x, y, angleOrNull, isSelected) {
-<<<<<<< HEAD
-  text = convertLatexShortcuts(originalText);
+  text = originalText;
   c.font = '20px "Times New Roman", serif';
   var width = c.measureText(text).width;
 
@@ -578,41 +429,6 @@ function drawText(c, originalText, x, y, angleOrNull, isSelected) {
       c.stroke();
     }
   }
-=======
-	text =originalText;
-	c.font = '20px "Times New Roman", serif';
-	var width = c.measureText(text).width;
-
-	// center the text
-	x -= width / 2;
-
-	// position the text intelligently if given an angle
-	if(angleOrNull != null) {
-		var cos = Math.cos(angleOrNull);
-		var sin = Math.sin(angleOrNull);
-		var cornerPointX = (width / 2 + 5) * (cos > 0 ? 1 : -1);
-		var cornerPointY = (10 + 5) * (sin > 0 ? 1 : -1);
-		var slide = sin * Math.pow(Math.abs(sin), 40) * cornerPointX - cos * Math.pow(Math.abs(cos), 10) * cornerPointY;
-		x += cornerPointX - sin * slide;
-		y += cornerPointY + cos * slide;
-	}
-
-	// draw text and caret (round the coordinates so the caret falls on a pixel)
-	if('advancedFillText' in c) {
-		c.advancedFillText(text, originalText, x + width / 2, y, angleOrNull);
-	} else {
-		x = Math.round(x);
-		y = Math.round(y);
-		c.fillText(text, x, y + 6);
-		if(isSelected && caretVisible && canvasHasFocus() && document.hasFocus()) {
-			x += width;
-			c.beginPath();
-			c.moveTo(x, y - 10);
-			c.lineTo(x, y + 10);
-			c.stroke();
-		}
-	}
->>>>>>> YY
 }
 
 var caretTimer;
@@ -699,16 +515,22 @@ window.onload = function() {
   restoreBackup();
   draw();
 
+  canvas.oncontextmenu = function() {
+    return false;
+  }
+
   canvas.onmousedown = function(e) {
+    var whichKey = e.button;
     var mouse = crossBrowserRelativeMousePos(e);
     selectedObject = selectObject(mouse.x, mouse.y);
     movingObject = false;
     originalClick = mouse;
 
     if (selectedObject != null) {
-      if (shift && selectedObject instanceof Node) {
+      // if (shift && selectedObject instanceof Node)
+      if (whichKey === 2 && selectedObject instanceof Node) {
         currentLink = new SelfLink(selectedObject, mouse);
-      } else {
+      } else if (whichKey === 0) {
         movingObject = true;
         deltaMouseX = deltaMouseY = 0;
         if (selectedObject.setMouseStart) {
@@ -716,7 +538,9 @@ window.onload = function() {
         }
       }
       resetCaret();
-    } else if (shift) {
+    }
+    // else if (shift)
+    else if (whichKey === 2) {
       currentLink = new TemporaryLink(mouse, mouse);
     }
 
@@ -748,6 +572,7 @@ window.onload = function() {
   };
 
   canvas.onmousemove = function(e) {
+    var whichKey = e.button;
     var mouse = crossBrowserRelativeMousePos(e);
 
     if (currentLink != null) {
@@ -755,7 +580,6 @@ window.onload = function() {
       if (!(targetNode instanceof Node)) {
         targetNode = null;
       }
-
       if (selectedObject == null) {
         if (targetNode != null) {
           currentLink = new StartLink(targetNode, originalClick);
@@ -803,9 +627,10 @@ var shift = false;
 document.onkeydown = function(e) {
   var key = crossBrowserKey(e);
 
-  if (key == 16) {
-    shift = true;
-  } else if (!canvasHasFocus()) {
+  // if (key == 16) {
+  //   shift = true;
+  // } else
+  if (!canvasHasFocus()) {
     // don't read keystrokes when other things have focus
     return true;
   } else if (key == 8) { // backspace key
@@ -835,13 +660,13 @@ document.onkeydown = function(e) {
   }
 };
 
-document.onkeyup = function(e) {
-  var key = crossBrowserKey(e);
-
-  if (key == 16) {
-    shift = false;
-  }
-};
+// document.onkeyup = function(e) {
+//   var key = crossBrowserKey(e);
+//
+//   if (key == 16) {
+//     shift = false;
+//   }
+// };
 
 document.onkeypress = function(e) {
   // don't read keystrokes when other things have focus
@@ -900,7 +725,6 @@ function crossBrowserRelativeMousePos(e) {
   };
 }
 
-<<<<<<< HEAD
 function output(text) {
   var element = document.getElementById('output');
   element.style.display = 'block';
@@ -921,8 +745,6 @@ function saveAsLaTeX() {
   output(texData);
 }
 
-=======
->>>>>>> YY
 function det(a, b, c, d, e, f, g, h, i) {
   return a * e * i + b * f * g + c * d * h - a * f * h - b * d * i - c * e * g;
 }
@@ -944,12 +766,16 @@ function fixed(number, digits) {
 }
 
 function restoreBackup() {
-<<<<<<< HEAD
   if (!localStorage || !JSON) {
     return;
   }
 
   try {
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    nodes = [];
+    links = [];
+
     var backup = JSON.parse(localStorage['fsm']);
 
     for (var i = 0; i < backup.nodes.length; i++) {
@@ -984,6 +810,7 @@ function restoreBackup() {
     }
   } catch (e) {
     localStorage['fsm'] = '';
+    alert("Reload the program!");
   }
 }
 
@@ -1042,141 +869,33 @@ function saveBackup() {
 
   localStorage['fsm'] = JSON.stringify(backup);
 }
-=======
-	if(!localStorage || !JSON) {
-		return;
-	}
-
-	try {
-		const context = canvas.getContext('2d');
-		context.clearRect(0, 0, canvas.width, canvas.height);
-			nodes = [];
-			links = [];
-
-		var backup = JSON.parse(localStorage['fsm']);
-
-		for(var i = 0; i < backup.nodes.length; i++) {
-			var backupNode = backup.nodes[i];
-			var node = new Node(backupNode.x, backupNode.y);
-			node.isAcceptState = backupNode.isAcceptState;
-			node.text = backupNode.text;
-			nodes.push(node);
-		}
-		for(var i = 0; i < backup.links.length; i++) {
-			var backupLink = backup.links[i];
-			var link = null;
-			if(backupLink.type == 'SelfLink') {
-				link = new SelfLink(nodes[backupLink.node]);
-				link.anchorAngle = backupLink.anchorAngle;
-				link.text = backupLink.text;
-			} else if(backupLink.type == 'StartLink') {
-				link = new StartLink(nodes[backupLink.node]);
-				link.deltaX = backupLink.deltaX;
-				link.deltaY = backupLink.deltaY;
-				link.text = backupLink.text;
-			} else if(backupLink.type == 'Link') {
-				link = new Link(nodes[backupLink.nodeA], nodes[backupLink.nodeB]);
-				link.parallelPart = backupLink.parallelPart;
-				link.perpendicularPart = backupLink.perpendicularPart;
-				link.text = backupLink.text;
-				link.lineAngleAdjust = backupLink.lineAngleAdjust;
-			}
-			if(link != null) {
-				links.push(link);
-			}
-		}
-	} catch(e) {
-		localStorage['fsm'] = '';
-		alert("Reload the program!");
-	}
-}
-
-function saveBackup() {
-	if(!localStorage || !JSON) {
-		return;
-	}
-
-	var backup = {
-		'nodes': [],
-		'links': [],
-	};
-	for(var i = 0; i < nodes.length; i++) {
-		var node = nodes[i];
-		var backupNode = {
-			'x': node.x,
-			'y': node.y,
-			'text': node.text,
-			'isAcceptState': node.isAcceptState,
-		};
-		backup.nodes.push(backupNode);
-	}
-	for(var i = 0; i < links.length; i++) {
-		var link = links[i];
-		var backupLink = null;
-		if(link instanceof SelfLink) {
-			backupLink = {
-				'type': 'SelfLink',
-				'node': nodes.indexOf(link.node),
-				'text': link.text,
-				'anchorAngle': link.anchorAngle,
-			};
-		} else if(link instanceof StartLink) {
-			backupLink = {
-				'type': 'StartLink',
-				'node': nodes.indexOf(link.node),
-				'text': link.text,
-				'deltaX': link.deltaX,
-				'deltaY': link.deltaY,
-			};
-		} else if(link instanceof Link) {
-			backupLink = {
-				'type': 'Link',
-				'nodeA': nodes.indexOf(link.nodeA),
-				'nodeB': nodes.indexOf(link.nodeB),
-				'text': link.text,
-				'lineAngleAdjust': link.lineAngleAdjust,
-				'parallelPart': link.parallelPart,
-				'perpendicularPart': link.perpendicularPart,
-			};
-		}
-		if(backupLink != null) {
-			backup.links.push(backupLink);
-		}
-	}
-
-	localStorage['fsm'] = JSON.stringify(backup);
-}
 
 
-function loading()
-{
-	var text = localStorage['fsm'];
+function loading() {
+  var text = localStorage['fsm'];
   var allcookies = localStorage.getItem('GetData');
   document.forms.coding_area.coding.value = text;
 }
 
 
-function saving()
-{
-		var text = document.forms.coding_area.coding.value;
-		localStorage['fsm'] = text;
-		restoreBackup();
-		localStorage['fsm'] = '';
+function saving() {
+  var text = document.forms.coding_area.coding.value;
+  localStorage['fsm'] = text;
+  restoreBackup();
+  localStorage['fsm'] = '';
 }
 
-function clearcanvas()
-{
-	const context = canvas.getContext('2d');
-	context.clearRect(0, 0, canvas.width, canvas.height);
-		nodes = [];
-		links = [];
-		localStorage['fsm'] = '';
+function clearcanvas() {
+  const context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  nodes = [];
+  links = [];
+  localStorage['fsm'] = '';
 }
 
- function changefont() {
-	alert ("Fucking RAW!");
-	var cirname = document.getElementById("labell");
-	cirname.innerHTML = "Comeon";
-	alert ("Fucking RAW!");
+function changefont() {
+  alert("Fucking RAW!");
+  var cirname = document.getElementById("labell");
+  cirname.innerHTML = "Comeon";
+  alert("Fucking RAW!");
 }
->>>>>>> YY

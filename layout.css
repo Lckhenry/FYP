@@ -26,6 +26,7 @@ canvas {
 	background: white;
 	border-radius: 20px;
 	margin: 10px auto;
+	float:left;
 }
 
 a {
@@ -47,8 +48,8 @@ p {
 	text-align: center;
 }
 
-textarea {
+/* textarea {
 	width: 75%;
 	height: 400px;
 	margin: 0 auto;
-}
+} */
