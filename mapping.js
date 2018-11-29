@@ -208,13 +208,6 @@ Node.prototype.draw = function(c) {
 
   // draw the text
   drawText(c, this.text, this.x, this.y, null, selectedObject == this);
-
-  // draw a double circle for an accept state
-  // if (this.isAcceptState) {
-  //   c.beginPath();
-  //   c.arc(this.x, this.y, nodeRadius - 6, 0, 2 * Math.PI, false);
-  //   c.stroke();
-  // }
 };
 
 Node.prototype.closestPointOnCircle = function(x, y) {
@@ -592,10 +585,6 @@ window.onload = function() {
 
       actionArea.style.visibility = "visible";
     }
-    // else if (selectedObject instanceof Node) {
-    //   selectedObject.isAcceptState = !selectedObject.isAcceptState;
-    //   draw();
-    // }
   };
 
   canvas.onmousemove = function(e) {
@@ -683,14 +672,9 @@ window.onload = function() {
 }
 
 
-//var shift = false;
-
 document.onkeydown = function(e) {
   var key = crossBrowserKey(e);
 
-  // if (key == 16) {
-  //   shift = true;
-  // } else
   if (!canvasHasFocus()) {
     // don't read keystrokes when other things have focus
     return true;
@@ -814,7 +798,6 @@ function restoreBackup() {
     for (var i = 0; i < backup.nodes.length; i++) {
       var backupNode = backup.nodes[i];
       var node = new Node(backupNode.visualInfo.x, backupNode.visualInfo.y);
-      //node.isAcceptState = backupNode.isAcceptState;
       node.text = backupNode.text;
       node.entryActions = backupNode.entryActions;
       nodes.push(node);
