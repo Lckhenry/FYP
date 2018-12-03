@@ -916,15 +916,4 @@ function clearcanvas() {
   nodes = [];
   links = [];
   localStorage['fsm'] = '';
-<<<<<<< HEAD
 }
-
-function changefont() {
-  alert("Fucking RAW!");
-  var cirname = document.getElementById("labell");
-  cirname.innerHTML = "Comeon";
-  alert("Fucking RAW!");
-}
-=======
-}
->>>>>>> tomtom
