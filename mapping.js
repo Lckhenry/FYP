@@ -42,6 +42,7 @@ function Link(a, b) {
   // make anchor point relative to the locations of nodeA and nodeB
   this.parallelPart = 0.5; // percentage from nodeA to nodeB
   this.perpendicularPart = 0; // pixels from line between nodeA and nodeB
+
 }
 
 Link.prototype.getAnchorPoint = function() {
@@ -184,8 +185,9 @@ function Node(x, y) {
   this.y = y;
   this.mouseOffsetX = 0;
   this.mouseOffsetY = 0;
-  this.isAcceptState = false;
+  //this.isAcceptState = false;
   this.text = '';
+  this.entryActions = [];
 }
 
 Node.prototype.setMouseStart = function(x, y) {
@@ -206,13 +208,6 @@ Node.prototype.draw = function(c) {
 
   // draw the text
   drawText(c, this.text, this.x, this.y, null, selectedObject == this);
-
-  // draw a double circle for an accept state
-  if (this.isAcceptState) {
-    c.beginPath();
-    c.arc(this.x, this.y, nodeRadius - 6, 0, 2 * Math.PI, false);
-    c.stroke();
-  }
 };
 
 Node.prototype.closestPointOnCircle = function(x, y) {
@@ -441,7 +436,7 @@ function resetCaret() {
 }
 
 var canvas;
-var nodeRadius = 30;
+var nodeRadius = 40;
 var nodes = [];
 var links = [];
 
@@ -452,6 +447,7 @@ var selectedObject = null; // either a Link or a Node
 var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
+var editingNode;
 
 function drawUsing(c) {
   c.clearRect(0, 0, canvas.width, canvas.height);
@@ -511,16 +507,20 @@ function snapNode(node) {
 }
 
 window.onload = function() {
+  var actionArea = document.querySelector("#actionArea");
+  var entryActions = document.querySelector("#entryActions");
+  var selectedNode = document.querySelector("#selectedNode");
+  var applyButton = document.querySelector("#actionApplyButton");
+  var resetButton = document.querySelector("#actionResetButton");
   canvas = document.getElementById('canvas');
   restoreBackup();
   draw();
-
   canvas.oncontextmenu = function() {
     return false;
   }
 
   canvas.onmousedown = function(e) {
-    var whichKey = e.button;
+    var whichKey = e.button; //Left click:0, right click: 2
     var mouse = crossBrowserRelativeMousePos(e);
     selectedObject = selectObject(mouse.x, mouse.y);
     movingObject = false;
@@ -540,8 +540,12 @@ window.onload = function() {
       resetCaret();
     }
     // else if (shift)
-    else if (whichKey === 2) {
+    else if (selectedObject == null && whichKey === 2) {
       currentLink = new TemporaryLink(mouse, mouse);
+    } else if (selectedObject == null && whichKey === 0) { //reseting the entry actions
+      actionArea.style.visibility = "hidden";
+      entryActions.innerHTML = "<li></li>";
+      selectedNode.innerHTML = "";
     }
 
     draw();
@@ -559,15 +563,27 @@ window.onload = function() {
   canvas.ondblclick = function(e) {
     var mouse = crossBrowserRelativeMousePos(e);
     selectedObject = selectObject(mouse.x, mouse.y);
-
     if (selectedObject == null) {
       selectedObject = new Node(mouse.x, mouse.y);
       nodes.push(selectedObject);
       resetCaret();
       draw();
-    } else if (selectedObject instanceof Node) {
-      selectedObject.isAcceptState = !selectedObject.isAcceptState;
-      draw();
+    } else if (selectedObject instanceof Node) { //presenting the action entry form
+      selectedNode.innerHTML = selectedObject.text;
+
+      if (selectedObject.entryActions.length == 0) {
+        entryActions.innerHTML = "<li></li>";
+      } else {
+        var actionsString = "";
+        for (var i = 0; i < selectedObject.entryActions.length; i++) {
+          var value = selectedObject.entryActions[i];
+          actionsString += "<li>" + value + "</li>";
+        }
+        entryActions.innerHTML = actionsString;
+      }
+
+
+      actionArea.style.visibility = "visible";
     }
   };
 
@@ -620,16 +636,45 @@ window.onload = function() {
       draw();
     }
   };
+
+  entryActions.addEventListener('keyup', function() { // maintain the dot of LI
+    if (this.innerHTML == '') {
+      this.innerHTML = '<li></li>';
+    }
+  });
+
+  applyButton.addEventListener('click', function() {
+    var tmp = [];
+    var childs = entryActions.children;
+    for (var i = 0; i < childs.length; i++) {
+      tmp.push(childs[i].innerText);
+    }
+    if (selectedObject instanceof Node) {
+      selectedObject.entryActions = tmp;
+      saveBackup();
+    }
+
+  });
+
+  resetButton.addEventListener('click', function() {
+    if (selectedObject.entryActions.length == 0) {
+      entryActions.innerHTML = "<li></li>";
+    } else {
+      var actionsString = "";
+      for (var i = 0; i < selectedObject.entryActions.length; i++) {
+        var value = selectedObject.entryActions[i];
+        actionsString += "<li>" + value + "</li>";
+      }
+      entryActions.innerHTML = actionsString;
+    }
+  });
+
 }
 
-var shift = false;
 
 document.onkeydown = function(e) {
   var key = crossBrowserKey(e);
 
-  // if (key == 16) {
-  //   shift = true;
-  // } else
   if (!canvasHasFocus()) {
     // don't read keystrokes when other things have focus
     return true;
@@ -659,14 +704,6 @@ document.onkeydown = function(e) {
     }
   }
 };
-
-// document.onkeyup = function(e) {
-//   var key = crossBrowserKey(e);
-//
-//   if (key == 16) {
-//     shift = false;
-//   }
-// };
 
 document.onkeypress = function(e) {
   // don't read keystrokes when other things have focus
@@ -725,26 +762,6 @@ function crossBrowserRelativeMousePos(e) {
   };
 }
 
-function output(text) {
-  var element = document.getElementById('output');
-  element.style.display = 'block';
-  element.value = text;
-}
-
-
-
-
-
-function saveAsLaTeX() {
-  var exporter = new ExportAsLaTeX();
-  var oldSelectedObject = selectedObject;
-  selectedObject = null;
-  drawUsing(exporter);
-  selectedObject = oldSelectedObject;
-  var texData = exporter.toLaTeX();
-  output(texData);
-}
-
 function det(a, b, c, d, e, f, g, h, i) {
   return a * e * i + b * f * g + c * d * h - a * f * h - b * d * i - c * e * g;
 }
@@ -780,9 +797,9 @@ function restoreBackup() {
 
     for (var i = 0; i < backup.nodes.length; i++) {
       var backupNode = backup.nodes[i];
-      var node = new Node(backupNode.x, backupNode.y);
-      node.isAcceptState = backupNode.isAcceptState;
+      var node = new Node(backupNode.visualInfo.x, backupNode.visualInfo.y);
       node.text = backupNode.text;
+      node.entryActions = backupNode.entryActions;
       nodes.push(node);
     }
     for (var i = 0; i < backup.links.length; i++) {
@@ -790,19 +807,19 @@ function restoreBackup() {
       var link = null;
       if (backupLink.type == 'SelfLink') {
         link = new SelfLink(nodes[backupLink.node]);
-        link.anchorAngle = backupLink.anchorAngle;
+        link.anchorAngle = backupLink.visualInfo.anchorAngle;
         link.text = backupLink.text;
       } else if (backupLink.type == 'StartLink') {
         link = new StartLink(nodes[backupLink.node]);
-        link.deltaX = backupLink.deltaX;
-        link.deltaY = backupLink.deltaY;
+        link.deltaX = backupLink.visualInfo.deltaX;
+        link.deltaY = backupLink.visualInfo.deltaY;
         link.text = backupLink.text;
       } else if (backupLink.type == 'Link') {
         link = new Link(nodes[backupLink.nodeA], nodes[backupLink.nodeB]);
-        link.parallelPart = backupLink.parallelPart;
-        link.perpendicularPart = backupLink.perpendicularPart;
+        link.parallelPart = backupLink.visualInfo.parallelPart;
+        link.perpendicularPart = backupLink.visualInfo.perpendicularPart;
         link.text = backupLink.text;
-        link.lineAngleAdjust = backupLink.lineAngleAdjust;
+        link.lineAngleAdjust = backupLink.visualInfo.lineAngleAdjust;
       }
       if (link != null) {
         links.push(link);
@@ -810,7 +827,6 @@ function restoreBackup() {
     }
   } catch (e) {
     localStorage['fsm'] = '';
-    alert("Reload the program!");
   }
 }
 
@@ -826,10 +842,13 @@ function saveBackup() {
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     var backupNode = {
-      'x': node.x,
-      'y': node.y,
+      'id': i,
       'text': node.text,
-      'isAcceptState': node.isAcceptState,
+      'visualInfo': {
+        'x': node.x,
+        'y': node.y,
+      },
+      'entryActions': node.entryActions
     };
     backup.nodes.push(backupNode);
   }
@@ -841,25 +860,31 @@ function saveBackup() {
         'type': 'SelfLink',
         'node': nodes.indexOf(link.node),
         'text': link.text,
-        'anchorAngle': link.anchorAngle,
+        'visualInfo': {
+          'anchorAngle': link.anchorAngle
+        }
       };
     } else if (link instanceof StartLink) {
       backupLink = {
         'type': 'StartLink',
         'node': nodes.indexOf(link.node),
         'text': link.text,
-        'deltaX': link.deltaX,
-        'deltaY': link.deltaY,
+        'visualInfo': {
+          'deltaX': link.deltaX,
+          'deltaY': link.deltaY,
+        }
       };
     } else if (link instanceof Link) {
       backupLink = {
         'type': 'Link',
+        'text': link.text,
         'nodeA': nodes.indexOf(link.nodeA),
         'nodeB': nodes.indexOf(link.nodeB),
-        'text': link.text,
-        'lineAngleAdjust': link.lineAngleAdjust,
-        'parallelPart': link.parallelPart,
-        'perpendicularPart': link.perpendicularPart,
+        "visualInfo": {
+          'lineAngleAdjust': link.lineAngleAdjust,
+          'parallelPart': link.parallelPart,
+          'perpendicularPart': link.perpendicularPart,
+        }
       };
     }
     if (backupLink != null) {
@@ -867,7 +892,7 @@ function saveBackup() {
     }
   }
 
-  localStorage['fsm'] = JSON.stringify(backup);
+  localStorage['fsm'] = JSON.stringify(backup, null, 2);
 }
 
 
@@ -891,6 +916,7 @@ function clearcanvas() {
   nodes = [];
   links = [];
   localStorage['fsm'] = '';
+<<<<<<< HEAD
 }
 
 function changefont() {
@@ -899,3 +925,6 @@ function changefont() {
   cirname.innerHTML = "Comeon";
   alert("Fucking RAW!");
 }
+=======
+}
+>>>>>>> tomtom
