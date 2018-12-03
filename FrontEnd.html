@@ -13,22 +13,38 @@
 <body>
 	<h1>FSM Designer</h1>
 
-	<canvas id="canvas" width="800" height="800">
+	<canvas id="canvas" width=800 height=700>
 		<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
 	</canvas>
 
-	<font id="labell" size=25>Label1</font></label><br>
-	<textarea name="nodeprogram" rows="20" cols="80"></textarea><br><br>
-	<label id="soursecode">
-		<font size=25px>Source Code</font>
-	</label><br><br>
-	<form name="coding_area">
-		<textarea name="coding" rows="25" cols="80"></textarea><br>
-		<button onclick="saving()" type="button" name="Save">Save</button>
-		<button onclick="loading()" type="button" name="load">Load</button>
-		<button onclick="clearcanvas()" type="button" name="clear">Clear</button>
-		<button onclick="changefont()" type="button" name="change">Change</button>
-	</form>
+	<div id="actionArea">
+		<div class="label">Selected Node: <span id="selectedNode"></span></div>
+		<div id="entryActionContainer">
+			<ul contenteditable="true" id="entryActions">
+				<li></li>
+			</ul>
+		</div>
+		<div>
+			<button type="button" name="button" id="actionApplyButton">Apply</button>
+			<button type="button" name="button" id="actionResetButton">Reset</button>
+		</div>
+	</div>
+
+
+	<div class="form">
+		<form name="coding_area">
+			<div class="label">
+				Source Code
+			</div>
+			<textarea name="coding" rows="25" cols="80"></textarea><br>
+			<div class="buttons">
+				<button onclick="saving()" type="button" name="Save">Save</button>
+				<button onclick="loading()" type="button" name="load">Load</button>
+				<button onclick="clearcanvas()" type="button" name="clear">Clear</button>
+			</div>
+		</form>
+	</div>
+
 </body>
 
 </html>
