@@ -1,50 +1,50 @@
-
-
+<!doctype html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>IE FYP by Henry And Tom</title>
-    <script src = "mapping.js">
-    </script>
-  </head>
 
-  <style>
-    body{
-      text-align : center;
-      background : grey;
-    }
+<head>
+	<title>IEFYP2018</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="layout.css">
+	<script src="mapping.js"></script>
+	<meta charset="utf-8">
+	<title>IE FYP by Henry And Tom</title>
+</head>
 
-    h1{
-	    font: bold italic 50px , serif;
-    }
+<body>
+	<h1>FSM Designer</h1>
 
-    canvas {
-    	display: block;
-    	max-width: 800px;
-    	background: white;
-    	border-radius: 20px;
-    	margin: 10px auto;
-      float:left;
-    }
+	<canvas id="canvas" width=800 height=700>
+		<span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
+	</canvas>
 
-  </style>
+	<div id="actionArea">
+		<div class="label">Selected Node: <span id="selectedNode"></span></div>
+		<div id="entryActionContainer">
+			<ul contenteditable="true" id="entryActions">
+				<li></li>
+			</ul>
+		</div>
+		<div>
+			<button type="button" name="button" id="actionApplyButton">Apply</button>
+			<button type="button" name="button" id="actionResetButton">Reset</button>
+		</div>
+	</div>
 
-  <body>
-    <h1>FSM Designer</h1>
 
-      <canvas  oncontextmenu="return false;" id="canvas" width="800" height="800">
-          <span class="error">Your browser does not support<br>the HTML5 &lt;canvas&gt; element</span>
-      </canvas>
+	<div class="form">
+		<form name="coding_area">
+			<div class="label">
+				Source Code
+			</div>
+			<textarea name="coding" rows="25" cols="80"></textarea><br>
+			<div class="buttons">
+				<button onclick="saving()" type="button" name="Save">Save</button>
+				<button onclick="loading()" type="button" name="load">Load</button>
+				<button onclick="clearcanvas()" type="button" name="clear">Clear</button>
+			</div>
+		</form>
+	</div>
 
-   <font id = "labell" size = 30>Label1</font></label><br>
-    <textarea name="nodeprogram" rows="20" cols="80"></textarea><br>
-    <label id= "soursecode"><font size = 30px>source Code</font></label><br>
-    <form name= "coding_area">
-      <textarea name="coding" rows="25" cols="80"></textarea><br>
-      <button onclick="saving()" type="button" name="Save">Save</button>
-      <button onclick="loading()" type="button" name="load">Load</button>
-      <button onclick="clearcanvas()" type="button" name="clear">Clear</button>
-      <button onclick="changefont()" type="button" name="change">Change</button>
-    </form>
-  </body>
+</body>
+
 </html>
