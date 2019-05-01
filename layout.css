@@ -1,5 +1,4 @@
 body {
-
 	text-align: center;
 	background: grey;
 	margin: 0 30px 100px 30px;
@@ -26,8 +25,7 @@ canvas {
 	max-width: 800px;
 	background: white;
 	border-radius: 20px;
-	padding: 10px 10px 10px 10px;
-	margin: 10px 10px 10px 10px;
+	margin: 10px auto;
 	float:left;
 }
 
@@ -35,34 +33,11 @@ a {
 	color: black;
 }
 
-div.label {
-	display: block;
+div {
 	margin: 30px auto;
-	/* text-align: left; */
-	/* max-width: 800px; */
-	font-size: 50px;
-}
-
-div#entryActionContainer{
-	width:590px;
-	height:310px;
-	background-color: white;
-	border-color: black;
-	border-width:  5px;
-	margin: auto;
-	font-size: 20px;
 	text-align: left;
-	overflow: scroll;
+	max-width: 800px;
 }
-
-#entryActions:focus {
-	outline: none;
-}
-
-#actionArea {
-	visibility: hidden;
-}
-
 
 p {
 	margin: 30px 0;
@@ -71,11 +46,6 @@ p {
 
 .center {
 	text-align: center;
-}
-
-div.buttons{
-	text-align: right;
-	padding-right: 320px;
 }
 
 /* textarea {
