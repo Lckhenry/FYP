@@ -206,9 +206,7 @@ Node.prototype.draw = function(c) {
 
   // draw the text
   drawText(c, this.text, this.x, this.y, null, selectedObject == this);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
+
 
   // draw a double circle for an accept state
   if (this.isAcceptState) {
@@ -216,8 +214,7 @@ Node.prototype.draw = function(c) {
     c.arc(this.x, this.y, nodeRadius - 6, 0, 2 * Math.PI, false);
     c.stroke();
   }
->>>>>>> parent of d34b143... final product. added the entry action boxes.
-=======
+
 
   // draw a double circle for an accept state
   // if (this.isAcceptState) {
@@ -225,7 +222,7 @@ Node.prototype.draw = function(c) {
   //   c.arc(this.x, this.y, nodeRadius - 6, 0, 2 * Math.PI, false);
   //   c.stroke();
   // }
->>>>>>> parent of 33bc9fc... Deleting the comments
+
 };
 
 Node.prototype.closestPointOnCircle = function(x, y) {
@@ -639,10 +636,8 @@ window.onload = function() {
   };
 }
 
-<<<<<<< HEAD
-=======
+
 var shift = false;
->>>>>>> parent of d34b143... final product. added the entry action boxes.
 
 //var shift = false;
 
@@ -802,16 +797,12 @@ function restoreBackup() {
 
     for (var i = 0; i < backup.nodes.length; i++) {
       var backupNode = backup.nodes[i];
-<<<<<<< HEAD
+
       var node = new Node(backupNode.visualInfo.x, backupNode.visualInfo.y);
-<<<<<<< HEAD
-=======
+
       var node = new Node(backupNode.x, backupNode.y);
       node.isAcceptState = backupNode.isAcceptState;
->>>>>>> parent of d34b143... final product. added the entry action boxes.
-=======
-      //node.isAcceptState = backupNode.isAcceptState;
->>>>>>> parent of 33bc9fc... Deleting the comments
+
       node.text = backupNode.text;
       nodes.push(node);
     }
@@ -915,8 +906,6 @@ function saving() {
   localStorage['fsm'] = '';
 }
 
-<<<<<<< HEAD
-
 function loading()
 {
 	var text = localStorage['fsm'];
@@ -930,7 +919,7 @@ function saving()
 		var text = document.forms.coding_area.coding.value;
 		localStorage['fsm'] = text;
 }
-=======
+
 function clearcanvas() {
   const context = canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
@@ -938,9 +927,7 @@ function clearcanvas() {
   links = [];
   localStorage['fsm'] = '';
 }
-<<<<<<< HEAD
->>>>>>> 33bc9fce00cdc9de66742b42b3e1c9c10ca5d44e
-=======
+
 
 function changefont() {
   alert("Fucking RAW!");
@@ -948,4 +935,3 @@ function changefont() {
   cirname.innerHTML = "Comeon";
   alert("Fucking RAW!");
 }
->>>>>>> parent of d34b143... final product. added the entry action boxes.
