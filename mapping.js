@@ -448,8 +448,6 @@ var nodeRadius = 40;
 var nodes = [];
 var links = [];
 
-
-var cursorVisible = true;
 var snapToPadding = 6; // pixels
 var hitTargetPadding = 6; // pixels
 var selectedObject = null; // either a Link or a Node
