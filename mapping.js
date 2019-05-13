@@ -1,4 +1,5 @@
-/*Program Synthesis using Interactive State Diagrams v0.0.1
+/*Frontend Interface of Program Synthesis using Interactive State Diagrams
+v1.3.0
 Made by TSUI, Yiu Ming and LEUNG, Chun Kit
 for the Final Year Project
 for the requirement of BEng Information Engineering, CUHK*/
@@ -135,12 +136,12 @@ Link.prototype.draw = function(c) {
     var textAngle = (startAngle + endAngle) / 2 + stuff.isReversed * Math.PI;
     var textX = stuff.circleX + stuff.circleRadius * Math.cos(textAngle);
     var textY = stuff.circleY + stuff.circleRadius * Math.sin(textAngle);
-    drawText(c, this.text, textX, textY, textAngle, selectedObject == this);
+    drawText(c, this.text, textX, textY, textAngle, selectedObject == this, true);
   } else {
     var textX = (stuff.startX + stuff.endX) / 2;
     var textY = (stuff.startY + stuff.endY) / 2;
     var textAngle = Math.atan2(stuff.endX - stuff.startX, stuff.startY - stuff.endY);
-    drawText(c, this.text, textX, textY, textAngle + this.lineAngleAdjust, selectedObject == this);
+    drawText(c, this.text, textX, textY, textAngle + this.lineAngleAdjust, selectedObject == this, true);
   }
 };
 
@@ -181,6 +182,7 @@ Link.prototype.containsPoint = function(x, y) {
 };
 
 function Node(x, y) {
+  this.id = undefined;
   this.x = x;
   this.y = y;
   this.mouseOffsetX = 0;
@@ -205,9 +207,14 @@ Node.prototype.draw = function(c) {
   c.beginPath();
   c.arc(this.x, this.y, nodeRadius, 0, 2 * Math.PI, false);
   c.stroke();
-
+  var node_text = '';
+  if (this.id == undefined) {
+    node_text = '';
+  } else {
+    node_text = 'S_' + this.id + ': ' + this.text;
+  }
   // draw the text
-  drawText(c, this.text, this.x, this.y, null, selectedObject == this);
+  drawText(c, node_text, this.x, this.y, null, selectedObject == this, false);
 };
 
 Node.prototype.closestPointOnCircle = function(x, y) {
@@ -282,7 +289,7 @@ SelfLink.prototype.draw = function(c) {
   // draw the text on the loop farthest from the node
   var textX = stuff.circleX + stuff.circleRadius * Math.cos(this.anchorAngle);
   var textY = stuff.circleY + stuff.circleRadius * Math.sin(this.anchorAngle);
-  drawText(c, this.text, textX, textY, this.anchorAngle, selectedObject == this);
+  drawText(c, this.text, textX, textY, this.anchorAngle, selectedObject == this, true);
   // draw the head of the arrow
   drawArrow(c, stuff.endX, stuff.endY, stuff.endAngle + Math.PI * 0.4);
 };
@@ -342,7 +349,7 @@ StartLink.prototype.draw = function(c) {
 
   // draw the text at the end without the arrow
   var textAngle = Math.atan2(stuff.startY - stuff.endY, stuff.startX - stuff.endX);
-  drawText(c, this.text, stuff.startX, stuff.startY, textAngle, selectedObject == this);
+  drawText(c, this.text, stuff.startX, stuff.startY, textAngle, selectedObject == this, true);
 
   // draw the head of the arrow
   drawArrow(c, stuff.endX, stuff.endY, Math.atan2(-this.deltaY, -this.deltaX));
@@ -374,7 +381,6 @@ TemporaryLink.prototype.draw = function(c) {
   drawArrow(c, this.to.x, this.to.y, Math.atan2(this.to.y - this.from.y, this.to.x - this.from.x));
 };
 
-var greekLetterNames = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega'];
 
 function drawArrow(c, x, y, angle) {
   var dx = Math.cos(angle);
@@ -390,7 +396,7 @@ function canvasHasFocus() {
   return (document.activeElement || document.body) == document.body;
 }
 
-function drawText(c, originalText, x, y, angleOrNull, isSelected) {
+function drawText(c, originalText, x, y, angleOrNull, isSelected, isLink) {
   text = originalText;
   c.font = '20px "Times New Roman", serif';
   var width = c.measureText(text).width;
@@ -416,12 +422,14 @@ function drawText(c, originalText, x, y, angleOrNull, isSelected) {
     x = Math.round(x);
     y = Math.round(y);
     c.fillText(text, x, y + 6);
-    if (isSelected && caretVisible && canvasHasFocus() && document.hasFocus()) {
-      x += width;
-      c.beginPath();
-      c.moveTo(x, y - 10);
-      c.lineTo(x, y + 10);
-      c.stroke();
+    if (!isLink) {
+      if (isSelected && caretVisible && canvasHasFocus() && document.hasFocus()) {
+        x += width;
+        c.beginPath();
+        c.moveTo(x, y - 10);
+        c.lineTo(x, y + 10);
+        c.stroke();
+      }
     }
   }
 }
@@ -440,14 +448,15 @@ var nodeRadius = 40;
 var nodes = [];
 var links = [];
 
+
 var cursorVisible = true;
 var snapToPadding = 6; // pixels
 var hitTargetPadding = 6; // pixels
 var selectedObject = null; // either a Link or a Node
+var dblclickSelectedObject = null;
 var currentLink = null; // a Link
 var movingObject = false;
 var originalClick;
-var editingNode;
 
 function drawUsing(c) {
   c.clearRect(0, 0, canvas.width, canvas.height);
@@ -506,14 +515,46 @@ function snapNode(node) {
   }
 }
 
+var actionOptions = [ //can be altered with JSON input
+  {
+    name: 'Green_LED',
+    type: 'toggle'
+  },
+  {
+    name: 'Amber_LED',
+    type: 'toggle'
+  },
+  {
+    name: 'Red_LED',
+    type: 'toggle'
+  },
+  {
+    name: 'LED_Display',
+    type: 'numerical',
+    min: '0',
+    max: '9999'
+  }
+];
+var transitOptions = [ //can be altered with JSON input
+  {
+    name: 'time'
+  },
+  {
+    name: 'count'
+  }
+];
+var entryActions = document.querySelector("#entryActionContainer");
 window.onload = function() {
   var actionArea = document.querySelector("#actionArea");
-  var entryActions = document.querySelector("#entryActions");
-  var selectedNode = document.querySelector("#selectedNode");
+  var selectedObjectName = document.querySelector("#selectedObjectName");
   var applyButton = document.querySelector("#actionApplyButton");
   var resetButton = document.querySelector("#actionResetButton");
   canvas = document.getElementById('canvas');
   restoreBackup();
+  for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
+    node.id = i;
+  }
   draw();
   canvas.oncontextmenu = function() {
     return false;
@@ -527,10 +568,19 @@ window.onload = function() {
     originalClick = mouse;
 
     if (selectedObject != null) {
-      // if (shift && selectedObject instanceof Node)
       if (whichKey === 2 && selectedObject instanceof Node) {
         currentLink = new SelfLink(selectedObject, mouse);
       } else if (whichKey === 0) {
+        if (!(selectedObject === dblclickSelectedObject)) {
+          actionArea.style.visibility = "hidden";
+          document.querySelectorAll('.controlBox').forEach(function(element) {
+            element.remove();
+          });
+          document.querySelectorAll('.boolean_container').forEach(function(bool) {
+            bool.remove();
+          });
+          selectedObjectName.innerHTML = "";
+        }
         movingObject = true;
         deltaMouseX = deltaMouseY = 0;
         if (selectedObject.setMouseStart) {
@@ -544,12 +594,15 @@ window.onload = function() {
       currentLink = new TemporaryLink(mouse, mouse);
     } else if (selectedObject == null && whichKey === 0) { //reseting the entry actions
       actionArea.style.visibility = "hidden";
-      entryActions.innerHTML = "<li></li>";
-      selectedNode.innerHTML = "";
+      document.querySelectorAll('.controlBox').forEach(function(element) {
+        element.remove();
+      });
+      document.querySelectorAll('.boolean_container').forEach(function(bool) {
+        bool.remove();
+      });
+      selectedObjectName.innerHTML = "";
     }
-
     draw();
-
     if (canvasHasFocus()) {
       // disable drag-and-drop only if the canvas is already focused
       return false;
@@ -561,28 +614,40 @@ window.onload = function() {
   };
 
   canvas.ondblclick = function(e) {
+    dblclickSelectedObject = selectedObject;
     var mouse = crossBrowserRelativeMousePos(e);
     selectedObject = selectObject(mouse.x, mouse.y);
-    if (selectedObject == null) {
+    var isNode = (selectedObject instanceof Node);
+    if (dblclickSelectedObject == null) {
       selectedObject = new Node(mouse.x, mouse.y);
       nodes.push(selectedObject);
       resetCaret();
       draw();
-    } else if (selectedObject instanceof Node) { //presenting the action entry form
-      selectedNode.innerHTML = selectedObject.text;
-
-      if (selectedObject.entryActions.length == 0) {
-        entryActions.innerHTML = "<li></li>";
-      } else {
-        var actionsString = "";
-        for (var i = 0; i < selectedObject.entryActions.length; i++) {
-          var value = selectedObject.entryActions[i];
-          actionsString += "<li>" + value + "</li>";
+    } else {
+      document.querySelectorAll('.controlBox').forEach(function(element) {
+        element.remove();
+      });
+      document.querySelectorAll('.boolean_container').forEach(function(bool) {
+        bool.remove();
+      });
+      //presenting the action entry form
+      if (isNode) {
+        selectedObjectName.textContent = 'Node= S_' + selectedObject.id + ':' + selectedObject.text;
+        if (selectedObject.entryActions.length != 0) {
+          for (var i = 0; i < selectedObject.entryActions.length; i++) {
+            var action = controlBoxCreate(isNode);
+            action.value = selectedObject.entryActions[i].action;
+            var outputValue = outputValueCreate(action.value, isNode);
+            outputValue.value = selectedObject.entryActions[i].value;
+            action.after(outputValue);
+          }
         }
-        entryActions.innerHTML = actionsString;
+      } else if (dblclickSelectedObject instanceof SelfLink) {
+        selectedObjectName.textContent = 'Link= S_' + dblclickSelectedObject.node.id + ' -> S_' + dblclickSelectedObject.node.id;
+      } else if (dblclickSelectedObject instanceof Link) {
+        selectedObjectName.textContent = 'Link= S_' + dblclickSelectedObject.nodeA.id + ' -> S_' + dblclickSelectedObject.nodeB.id;
       }
-
-
+      loadLinkText();
       actionArea.style.visibility = "visible";
     }
   };
@@ -637,48 +702,75 @@ window.onload = function() {
     }
   };
 
-  entryActions.addEventListener('keyup', function() { // maintain the dot of LI
-    if (this.innerHTML == '') {
-      this.innerHTML = '<li></li>';
-    }
-  });
-
   applyButton.addEventListener('click', function() {
-    var tmp = [];
-    var childs = entryActions.children;
-    for (var i = 0; i < childs.length; i++) {
-      tmp.push(childs[i].innerText);
-    }
-    if (selectedObject instanceof Node) {
-      selectedObject.entryActions = tmp;
-      saveBackup();
-    }
+    if (dblclickSelectedObject instanceof Node) {
+      var tmp = [];
+      var outputOptionsArray = document.querySelectorAll('select.output');
+      var outputValueArray = document.querySelectorAll('.outputValue');
+      for (var i = 0; i < outputOptionsArray.length; i++) {
+        var outputAction = {
+          action: outputOptionsArray[i].value,
+          value: outputValueArray[i].value
+        }
+        tmp.push(outputAction);
+      }
+      dblclickSelectedObject.entryActions = tmp;
+    } else if ((dblclickSelectedObject instanceof Link) || (dblclickSelectedObject instanceof SelfLink)) {
+      var tmp = '';
+      var outputOptionsArray = document.querySelectorAll('select.output');
+      var outputValueArray = document.querySelectorAll('.linkValue');
+      var booleanBeforeArray = document.querySelectorAll('.boolBefore');
+      var booleanAfterArray = document.querySelectorAll('.boolAfter');
 
+      for (var i = 0; i < outputOptionsArray.length; i++) {
+        var booleanBeforeOptionArray = booleanBeforeArray[i].querySelectorAll('select.boolean_options');
+        var booleanAfterOptionArray = booleanAfterArray[i].querySelectorAll('select.boolean_options');
+        for (var j = 0; j < booleanBeforeOptionArray.length; j++) {
+          tmp += booleanBeforeOptionArray[j].value;
+        }
+        tmp += ' ' + outputOptionsArray[i].value + '=' + outputValueArray[i].value + ' ';
+        for (var j = 0; j < booleanAfterOptionArray.length; j++) {
+          tmp += booleanAfterOptionArray[j].value;
+        }
+        tmp += ' ';
+      }
+      dblclickSelectedObject.text = tmp;
+    }
+    saveBackup();
   });
 
   resetButton.addEventListener('click', function() {
-    if (selectedObject.entryActions.length == 0) {
-      entryActions.innerHTML = "<li></li>";
-    } else {
-      var actionsString = "";
-      for (var i = 0; i < selectedObject.entryActions.length; i++) {
-        var value = selectedObject.entryActions[i];
-        actionsString += "<li>" + value + "</li>";
+    document.querySelectorAll('.controlBox').forEach(function(element) {
+      element.remove();
+    });
+    document.querySelectorAll('.boolean_container').forEach(function(bool) {
+      bool.remove();
+    });
+
+    if (dblclickSelectedObject instanceof Node) {
+      if (dblclickSelectedObject.entryActions.length != 0) {
+        for (var i = 0; i < dblclickSelectedObject.entryActions.length; i++) {
+          var action = controlBoxCreate(true);
+          action.value = dblclickSelectedObject.entryActions[i].action;
+          var outputValue = outputValueCreate(action.value, true);
+          outputValue.value = dblclickSelectedObject.entryActions[i].value;
+          action.after(outputValue);
+        }
       }
-      entryActions.innerHTML = actionsString;
+    } else if (dblclickSelectedObject) {
+      if (dblclickSelectedObject.text.length != 0) {
+        loadLinkText();
+      }
     }
   });
-
 }
-
 
 document.onkeydown = function(e) {
   var key = crossBrowserKey(e);
-
   if (!canvasHasFocus()) {
     // don't read keystrokes when other things have focus
     return true;
-  } else if (key == 8) { // backspace key
+  } else if (key == 8 && selectedObject instanceof Node) { // backspace key
     if (selectedObject != null && 'text' in selectedObject) {
       selectedObject.text = selectedObject.text.substr(0, selectedObject.text.length - 1);
       resetCaret();
@@ -701,6 +793,7 @@ document.onkeydown = function(e) {
       }
       selectedObject = null;
       draw();
+      actionArea.style.visibility = 'hidden';
     }
   }
 };
@@ -708,10 +801,10 @@ document.onkeydown = function(e) {
 document.onkeypress = function(e) {
   // don't read keystrokes when other things have focus
   var key = crossBrowserKey(e);
-  if (!canvasHasFocus()) {
+  if (!canvasHasFocus() && !(selectedObject instanceof Node)) {
     // don't read keystrokes when other things have focus
     return true;
-  } else if (key >= 0x20 && key <= 0x7E && !e.metaKey && !e.altKey && !e.ctrlKey && selectedObject != null && 'text' in selectedObject) {
+  } else if (key >= 0x20 && key <= 0x7E && !e.metaKey && !e.altKey && !e.ctrlKey && selectedObject != null && 'text' in selectedObject && selectedObject instanceof Node) {
     selectedObject.text += String.fromCharCode(key);
     resetCaret();
     draw();
@@ -841,6 +934,7 @@ function saveBackup() {
   };
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
+    node.id = i;
     var backupNode = {
       'id': i,
       'text': node.text,
@@ -896,19 +990,18 @@ function saveBackup() {
 }
 
 
-function loading() {
-  var text = localStorage['fsm'];
-  var allcookies = localStorage.getItem('GetData');
-  document.forms.coding_area.coding.value = text;
-}
+// function loading() { //used in old ver. for ref.
+//   var text = localStorage['fsm'];
+//   var allcookies = localStorage.getItem('GetData');
+//   document.forms.coding_area.coding.value = text;
+// }
 
-
-function saving() {
-  var text = document.forms.coding_area.coding.value;
-  localStorage['fsm'] = text;
-  restoreBackup();
-  localStorage['fsm'] = '';
-}
+// function saving() { //used in old ver. for ref.
+//   var text = document.forms.coding_area.coding.value;
+//   localStorage['fsm'] = text;
+//   restoreBackup();
+//   localStorage['fsm'] = '';
+// }
 
 function clearcanvas() {
   const context = canvas.getContext('2d');
@@ -916,4 +1009,308 @@ function clearcanvas() {
   nodes = [];
   links = [];
   localStorage['fsm'] = '';
+  actionArea.style.visibility = "hidden";
 }
+
+function controlBoxCreate(isNode) {
+  var type;
+  if (isNode == true) {
+    type = actionOptions; //for node
+  } else {
+    type = transitOptions; //for link
+  }
+
+  var control_box = document.createElement('div');
+  control_box.className = 'controlBox';
+  var options_box = document.createElement('div');
+  options_box.className = 'options_box';
+  var minus_container = document.createElement('div');
+  minus_container.className = 'minus_container';
+  var minusButton = document.createElement('span');
+  minusButton.className = 'minusButton';
+  minusButton.textContent = '-';
+  minus_container.appendChild(minusButton);
+  control_box.appendChild(options_box);
+  control_box.appendChild(minus_container);
+  document.querySelector('.plus_container').before(control_box);
+
+  var optionsMenu = document.createElement('select');
+  optionsMenu.className = 'output';
+  var placeholder = document.createElement('option');
+  placeholder.setAttribute('disabled', '');
+  placeholder.value = "";
+  placeholder.text = "--Please Select--"
+  optionsMenu.appendChild(placeholder);
+  for (var i = 0; i < type.length; i++) {
+    var action = document.createElement('option');
+    action.value = type[i].name;
+    action.textContent = type[i].name;
+    optionsMenu.appendChild(action);
+  }
+  options_box.appendChild(optionsMenu);
+  optionsMenu.addEventListener('change', function() {
+    if (this.nextElementSibling) {
+      this.nextElementSibling.remove();
+    }
+    var outputValue = outputValueCreate(this.value, isNode);
+    this.after(outputValue);
+  });
+  minusButton.addEventListener('click', function() {
+    if (isNode != true) {
+      control_box.previousElementSibling.remove();
+      control_box.nextElementSibling.remove();
+    }
+    control_box.remove();
+  });
+  return optionsMenu;
+}
+
+function outputValueCreate(action, isNode) {
+  var actionValue = undefined;
+  var type = undefined;
+  if (isNode) {
+    for (var i = 0; i < actionOptions.length; i++) {
+      if (action == actionOptions[i].name) {
+        type = actionOptions[i].type;
+        if (type == 'toggle') {
+          actionValue = document.createElement('select');
+          actionValue.className = 'toggle';
+          var on = document.createElement('option');
+          on.value = 'On';
+          on.textContent = 'On';
+          var off = document.createElement('option');
+          off.value = 'Off';
+          off.textContent = 'Off';
+          actionValue.appendChild(on);
+          actionValue.appendChild(off);
+        } else if (type == 'numerical') {
+          actionValue = document.createElement('input');
+          actionValue.className = 'numerical';
+          actionValue.setAttribute('type', 'number');
+          actionValue.setAttribute('min', actionOptions[i].min);
+          actionValue.setAttribute('max', actionOptions[i].max);
+          actionValue.value = actionOptions[i].min;
+          actionValue.addEventListener('change', function() {
+            if (this.value > actionOptions[i].max) {
+              this.value = actionOptions[i].max;
+            } else if (this.value < actionOptions[i].min) {
+              this.value = actionOptions[i].min;
+            }
+          });
+        }
+        actionValue.classList.add('outputValue');
+        break;
+      }
+    }
+  } else {
+    if (action == 'time' || action == 'count') {
+      actionValue = document.createElement('input');
+      actionValue.className = 'numerical';
+      actionValue.setAttribute('type', 'number');
+      actionValue.setAttribute('min', '0');
+      actionValue.value = 0;
+      actionValue.addEventListener('change', function() {
+        if (this.value < 0) {
+          this.value = 0;
+        }
+      });
+      actionValue.classList.add('linkValue');
+    }
+  }
+
+  return actionValue;
+}
+
+function booleanOptionCreate() {
+  var boolean_container = document.createElement('div');
+  boolean_container.className = 'boolean_container';
+  // var boolean_option = booleanOperatorCreate();
+  var addButton = document.createElement('span');
+  addButton.textContent = '+';
+  addButton.className = 'booleanAddButton';
+  addButton.addEventListener('click', function() {
+    var newBooleanOption = booleanOperatorCreate();
+    boolean_container.appendChild(newBooleanOption);
+  });
+  var minusButton = document.createElement('span');
+  minusButton.textContent = '-';
+  minusButton.className = 'booleanMinusButton';
+  minusButton.addEventListener('click', function() {
+    var lastChild = boolean_container.querySelector('select.boolean_options:last-child');
+    if (lastChild) {
+      lastChild.remove();
+    }
+  });
+  boolean_container.appendChild(addButton);
+  boolean_container.appendChild(minusButton);
+  return boolean_container;
+}
+
+function booleanOperatorCreate() {
+  var boolean_select = document.createElement('select');
+  boolean_select.className = 'boolean_options';
+  var boolean_array = ['(', ')', '!', '||', '&&'];
+  for (var i = 0; i < boolean_array.length; i++) {
+    var operator = document.createElement('option');
+    operator.value = boolean_array[i];
+    operator.textContent = boolean_array[i];
+    boolean_select.appendChild(operator);
+  }
+  return boolean_select;
+}
+
+function loadLinkText() {
+  var textArray = dblclickSelectedObject.text.split(' ');
+  var controlLocation = [];
+  for (var i = 0; i < textArray.length; i++) {
+    if (textArray[i].indexOf('=') != -1) {
+      controlLocation.push(i);
+    }
+  }
+  for (var i = 0; i < controlLocation.length; i++) {
+    var location = controlLocation[i];
+    var linkOptions = textArray[location].split('=');
+    var boolBeforeOptions = textArray[location - 1].split('');
+    var boolAfterOptions = textArray[location + 1].split('');
+
+    var controlOption = controlBoxCreate(false);
+    controlOption.value = linkOptions[0];
+    var controlValue = outputValueCreate(controlOption.value, false);
+    controlValue.value = linkOptions[1];
+    controlOption.after(controlValue);
+
+    var bool1 = booleanOptionCreate();
+    var bool2 = booleanOptionCreate();
+    bool1.classList.add('boolBefore');
+    bool2.classList.add('boolAfter');
+    var controlBox = controlOption.parentElement.parentElement;
+    controlBox.before(bool1);
+    controlBox.after(bool2);
+    for (var j = 0; j < boolBeforeOptions.length; j++) {
+      var operator = booleanOperatorCreate();
+      operator.value = boolBeforeOptions[j];
+      bool1.appendChild(operator);
+    }
+    for (var j = 0; j < boolAfterOptions.length; j++) {
+      var operator2 = booleanOperatorCreate();
+      operator2.value = boolAfterOptions[j];
+      bool2.appendChild(operator2);
+    }
+  }
+}
+
+var clear = document.getElementById("clear");
+clear.addEventListener('click', clearcanvas);
+var plusButton = document.getElementById('plusButton');
+plusButton.addEventListener('click', function() {
+  var objectType = (selectedObject instanceof Node);
+  var addedControl = controlBoxCreate(objectType);
+  addedControl.value = '';
+  if (!objectType) {
+    var controlBox = addedControl.parentElement.parentElement;
+    var bool1 = booleanOptionCreate();
+    var bool2 = booleanOptionCreate();
+    bool1.classList.add('boolBefore');
+    bool2.classList.add('boolAfter');
+    controlBox.before(bool1);
+    controlBox.after(bool2);
+  }
+});
+
+function compilerErrorHandling() {
+  try { //check the FSM if there is any error
+    // if (!localStorage || !JSON) {
+    //   throw new FSM_Error('Cannot find FSM');
+    // }
+
+    var fsm = JSON.parse(localStorage['fsm']);
+    var syntaxErrorFlag = false;
+    var error_messages = [];
+    var startLinkCounter = 0;
+    //check on links
+    for (var i = 0; i < fsm.links.length; i++) { //loop on links
+      var link = fsm.links[i];
+      if (link.type == 'StartLink') {
+        startLinkCounter++;
+      } else if (link.text == '') {
+        if (link.type == 'SelfLink') {
+          error_messages.push('Self link of S_' + link.node + ': The condidtion of has not been specified.');
+        } else if (link.type == 'Link') {
+          error_messages.push('link of S_' + link.nodeA + '->S_' + link.nodeB + ': The condidtion has not been specified.');
+        }
+        syntaxErrorFlag = true;
+      }
+    }
+    if (startLinkCounter > 1) {
+      error_messages.push("More than one start link. Please delete them to specify the start state clearly.");
+      syntaxErrorFlag = true;
+    } else if (startLinkCounter <= 0) {
+      error_messages.push("No start link is found. Please add a start link to specify the start state.");
+      syntaxErrorFlag = true;
+    }
+
+    //check on nodes
+    for (var i = 0; i < fsm.nodes.length; i++) {
+      var node = fsm.nodes[i];
+      if (node.entryActions.length == 0) {
+        error_messages.push('Node S_' + node.id + ': No entry action is found');
+        syntaxErrorFlag = true;
+      } else {
+        loop1: {
+          for (var i = 0; i < node.entryActions.length; i++) {
+            loop2: {
+              for (var j = i + 1; j < node.entryActions.length; j++) {
+                if (node.entryActions[i].name == node.entryActions[j].name) {
+                  error_messages.push('Node S_:' + node.id + ': Repeated action options have been set up.');
+                  syntaxErrorFlag = true;
+                  break loop1;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (syntaxErrorFlag == true) {
+      throw new fsm_Syntax_Error('Syntax error is spotted');
+    }
+
+    //send data to the server
+    //...
+  } catch { //present the errors
+    var popUpWindowContainer = document.getElementById('popUpWindowContainer');
+    var popupTitle = document.getElementById('popup-title');
+    var popupCloseButton = document.getElementById('closeButton');
+    var popupContent = document.getElementById('popup-content-list');
+    popupTitle.textContent = 'Compile Error!';
+    for (var i = 0; i < error_messages.length; i++) {
+      var message = document.createElement('li');
+      message.textContent = error_messages[i];
+      popupContent.appendChild(message);
+    }
+    popUpWindowContainer.style.visibility = 'visible';
+
+    popupCloseButton.addEventListener('click', function() {
+      var childContents = popupContent.children;
+      for (var i = 0; i < childContents.length; i++) {
+        childContents[i].remove();
+      }
+      error_messages.length = [];
+      popUpWindowContainer.style.visibility = 'hidden';
+    });
+
+    window.addEventListener('click', function(e) {
+      if (e.target == popUpWindowContainer) {
+        var childContents = popupContent.children;
+        for (var i = 0; i < childContents.length; i++) {
+          childContents[i].remove();
+        }
+        error_messages.length = [];
+        popUpWindowContainer.style.visibility = 'hidden';
+      }
+    });
+  }
+}
+
+var compileButton = document.getElementById('compile');
+compileButton.addEventListener('click', compilerErrorHandling);
