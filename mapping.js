@@ -799,7 +799,7 @@ document.onkeydown = function(e) {
 document.onkeypress = function(e) {
   // don't read keystrokes when other things have focus
   var key = crossBrowserKey(e);
-  if (!canvasHasFocus() && !(selectedObject instanceof Node)) {
+  if (!canvasHasFocus() || !(selectedObject instanceof Node)) {
     // don't read keystrokes when other things have focus
     return true;
   } else if (key >= 0x20 && key <= 0x7E && !e.metaKey && !e.altKey && !e.ctrlKey && selectedObject != null && 'text' in selectedObject && selectedObject instanceof Node) {
