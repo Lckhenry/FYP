@@ -1215,7 +1215,15 @@ plusButton.addEventListener('click', function() {
   }
 });
 
-function compilerErrorHandling() {
+var fsmForm = document.getElementById('fsmForm');
+fsmForm.addEventListener('submit', function(event) {
+  compilerFSM(event);
+});
+
+function compilerFSM(event) {
+
+  event.preventDefault();
+
   try { //check the FSM if there is any error
     // if (!localStorage || !JSON) {
     //   throw new FSM_Error('Cannot find FSM');
@@ -1273,8 +1281,16 @@ function compilerErrorHandling() {
       throw new fsm_Syntax_Error('Syntax error is spotted');
     }
 
-    //send data to the server
-    //...
+    //send data to the server through hidden form
+
+
+    var fsmJSON = document.createElement('input');
+    fsmJSON.setAttribute('type', 'hidden');
+    fsmJSON.setAttribute('name', 'fsm');
+    fsmJSON.setAttribute('value', localStorage['fsm']);
+
+    fsmForm.appendChild(fsmJSON);
+    fsmForm.submit();
   } catch { //present the errors
     var popUpWindowContainer = document.getElementById('popUpWindowContainer');
     var popupTitle = document.getElementById('popup-title');
@@ -1309,6 +1325,3 @@ function compilerErrorHandling() {
     });
   }
 }
-
-var compileButton = document.getElementById('compile');
-compileButton.addEventListener('click', compilerErrorHandling);
