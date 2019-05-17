@@ -1261,21 +1261,18 @@ function compilerFSM(event) {
       if (node.entryActions.length == 0) {
         error_messages.push('Node S_' + node.id + ': No entry action is found');
         syntaxErrorFlag = true;
-      } else {
-        loop1: {
-          for (var i = 0; i < node.entryActions.length; i++) {
-            loop2: {
-              for (var j = i + 1; j < node.entryActions.length; j++) {
-                if (node.entryActions[i].name == node.entryActions[j].name) {
-                  error_messages.push('Node S_:' + node.id + ': Repeated action options have been set up.');
-                  syntaxErrorFlag = true;
-                  break loop1;
-                }
-              }
-            }
-          }
-        }
       }
+      // else {
+      //   for (var i = 0; i < node.entryActions.length - 1; i++) {
+      //     for (var j = i + 1; j < node.entryActions.length; j++) {
+      //       if (node.entryActions[i].name == node.entryActions[j].name) {
+      //         error_messages.push('Node S_:' + node.id + ': Repeated action options have been set up.');
+      //         syntaxErrorFlag = true;
+      //         break;
+      //       }
+      //     }
+      //   }
+      // }
     }
     if (syntaxErrorFlag == true) {
       throw new fsm_Syntax_Error('Syntax error is spotted');
