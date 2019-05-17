@@ -7,7 +7,6 @@ fclose($JSONFile);
 //execute the JSON parser
 exec('cd /home/ubuntu/fyp/; ./coding');
 //zip the whole folder
-
 $rootPath = realpath('/home/ubuntu/fyp/codeing');
 
 $zip = new ZipArchive();
